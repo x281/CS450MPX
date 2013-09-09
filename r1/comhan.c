@@ -113,6 +113,7 @@ int main() {
 	case 'c': cmd_clear();
 	  break;
 	};
+	break;
       };
       case 1: {
 	switch(cmd[0]) {
