@@ -1,62 +1,126 @@
 #include <stdio.h>
 #include "mpx_supt.h"
 
-//largest command size, +1: 
-#define CMDSIZE 9
+/****************************
 
-//max commands beginning with same letter:
+  CS 450 MPX Operating System
+  Module R1
+
+  TEAM TEAMWORK
+  
+  **************************/
+
+
+//Version identification
+#define VERSION_STRING "MPX v1.0 9/13/2013\n"
+
+
+//Largest command size: 
+#define CMDSIZE 8
+
+//Max commands beginning with same letter:
 #define CMDNUM 2
 
-//mpx file directory
+
+//Possible command index
+#define CMD_IDX \
+\
+  cmdArray['c'-'a'][0] = "clear";\
+  cmdArray['d'-'a'][0] = "date";\
+  cmdArray['d'-'a'][1] = "dir";\
+  cmdArray['h'-'a'][0] = "help";\
+  cmdArray['m'-'a'][0] = "mpxdir";\
+  cmdArray['q'-'a'][0] = "quit";\
+  cmdArray['s'-'a'][0] = "setdate";\
+  cmdArray['v'-'a'][0] = "version";
+
+
+//MPX file directory
 #define MPXDIR "mpxfiles"
 
-void cmd_mpxdir(char*);
+//Park-Miller PRNG support
+#define RNG_M 2147483647L /* m = 2^31 - 1 */
+#define RNG_A 16807L
+#define RNG_Q 127773L     /* m div a */
+#define RNG_R 2836L       /* m mod a */
+static long rnd_seed;
 
+//Function Prototypes
+int mpx_command_loop();
+void cmd_mpxdir(char*);
+int cmd_version();
+int cmd_help();
+int cmd_set_date(date_rec*, char*);
+int cmd_disp_date(date_rec*);
+int cmd_clear();
+long rnd();
+int randi(int);
+float randf();
+
+
+///////////////////
+/* MAIN FUNCTION */
+///////////////////
 int main() {
   int ini;
+
+  //Setup RNG
+  long seedval = 1234567890L;
+  rnd_seed = (seedval % (RNG_M - 1)) + 1;
+
+  //Init sys helper
+  ini = sys_init(MODULE_R1);
+
+  //Start cmd loop
+  if (ini == 0) {
+    mpx_command_loop();
+
+    //Shutdown sys helper
+    sys_exit();
+
+  } else printf("SYSTEM ERROR: Unable to initialize library");
+
+  return 0;
+};
+
+/////////////////
+//Command loop //
+/////////////////
+int mpx_command_loop() {
   int ck;
 
-  //command/size/first word:
-  char entry[128];
-  long sz;
-  char cmd[CMDSIZE];
+  char entry[128];  //user input
+  long sz;          //length
+  char cmd[CMDSIZE + 1];//1st word
   
-  //Date
-  date_rec *day;
+  date_rec *day;    //date
 
-  //table of commands:
-  char ***cmdArray;
+  char ***cmdArray; //table of cmds
 
-  char c;
-  int i, j;
+  char c;  //  generic
+  int i, j;//variables
 
-  /* Initialize system */
-  ini = sys_init(MODULE_R1);
+  char pa[3] = "[]";//re:cmd
+  char pb[3] = "()";//prompt
+
+  /* Initialize memory */
   cmdArray = sys_alloc_mem(26 * sizeof(char **));
   for (i = 0; i < 26; i++) {
     cmdArray[i] = sys_alloc_mem(CMDNUM * sizeof(char *));
     for (j = 0; j < CMDNUM; j++) {
-      cmdArray[i][j] = sys_alloc_mem(CMDSIZE * sizeof(char));
+      cmdArray[i][j] = sys_alloc_mem((CMDSIZE + 1) * sizeof(char));
     };
   };
   sys_req(CLEAR, TERMINAL, entry, &sz);
+
   /* Possible command index */
-  cmdArray['c'-'a'][0] = "clear";
-  cmdArray['d'-'a'][0] = "date";
-  cmdArray['d'-'a'][1] = "dir";
-  cmdArray['h'-'a'][0] = "help";
-  cmdArray['m'-'a'][0] = "mpxdir";
-  cmdArray['q'-'a'][0] = "quit";
-  cmdArray['s'-'a'][0] = "setdate";
-  cmdArray['v'-'a'][0] = "version";
-  
-  
-  //printf("Init status: %d\n", ini);
+  CMD_IDX  
   
   /* Begin Command Loop */
   ck = 0;
  cloop:
   while(ck >= 0) {
+    printf("%c%c> ", pa[randi(2)], pb[randi(2)]); //cmd prompt
     ck = sys_req(READ, TERMINAL, entry, &sz);
     if (ck < 0) {
       printf("FATAL ERROR\n");
@@ -79,7 +143,7 @@ int main() {
     /* Scan for the command in cmdArray */
     for(i = 0; i < CMDNUM; i++) {
       int hit;
-      for(j = 0; j < CMDSIZE; j++) { 
+      for(j = 0; j < (CMDSIZE + 1); j++) { 
 	hit = 0;
 	if ((cmd[j] != '\0') && (cmd[j] < 'a')) cmd[j] += 32;
 	if (cmd[j] != cmdArray[cmd[0]-'a'][i][j]) break;
@@ -102,7 +166,7 @@ int main() {
 	  break;
 	case 'h': cmd_help();
 	  break;
-	case 'm': cmd_mpxdir(&entry[j+1]); //run mpxdir command
+	case 'm': cmd_mpxdir(&entry[j+1]);
 	  break;
 	case 'q': goto stop;
 	  
@@ -117,7 +181,7 @@ int main() {
       };
       case 1: {
 	switch(cmd[0]) {
-	case 'd': cmd_mpxdir(&entry[j+1]); //run mpxdir command
+	case 'd': cmd_mpxdir(&entry[j+1]);
 	  break;
 	};
       };
@@ -129,7 +193,7 @@ int main() {
   broke:
   };
   
-  /* Shut down the command system */
+  /* Deallocate memory/shutdown */
  stop:
   for (i = 0; i < 26; i++) {
     for (j = 0; j < CMDNUM; j++) {
@@ -138,44 +202,65 @@ int main() {
     sys_free_mem(cmdArray[i]);
   };
   sys_free_mem(cmdArray);
-  sys_exit();
   return 0;
 };
 
+
+////////////////////////
+/* COMMAND FUNCTIONS: */
+////////////////////////
+
+//////////////
+//MPX file directory fn
 void cmd_mpxdir(char *args) {
   char mpxDir[9] = MPXDIR;
   int i = 0;
+
+  //helpers for sys fn
   char fileName[128];
   char fileSizeString[32];
-  char separator[4] = "\n";
-  int sFlag = 0;
   int fileNameSize = 128;
   long fileSize;
-  int ck;
+
+  //format control 
+  char separator[4] = "\n";
+  int sFlag = 0;
+
+  int ck;//status
+
   if (args[0] == '-') {
     while ((args[i+1] >= 'a') && (args[i+1] <= 'z')) {
+      /* Argument Handling */
       switch (args[++i]) {
-      case 'w':  {
-  sprintf(separator, "\t");
-  // handle argument 'w'
-  
-  break; }
-      case 's': {
-  sFlag = 1;
-  // handle argument 's' . . .
-  break; }
+      case 'w':  {// wide format, continuous line out
+	sprintf(separator, "\t");// replace \n with \t
+	break; }
+      case 's': {// short format, no size information
+	sFlag = 1;// suppress size string output
+	break; }
+      case 'h': {// help request
+	printf("Supported arguments:\n"
+	       "  -h : Help (display this information)\n"
+	       "  -s : Short format (no size info)\n"
+	       "  -w : Wide format (no line breaks)\n");
+	goto skip; }
       default:
-  printf("unknown argument: %c\n", args[i]);
+	printf("Unknown argument: %c\n", args[i]);
       };
     };
     i++;
   };
   while (isspace(args[i])) i++;
-  if (args[i] != '\0') printf("unknown arguments\n");
+  if (args[i] != '\0') {
+    printf("Unknown argument(s) ['dir -h' for help]\n");
+  };
+
   ck = sys_open_dir(mpxDir);
+
+  //Import and print directory contents
   if (ck == 0) {
     ck = sys_get_entry(&fileName[0], fileNameSize, &fileSize);
-    while (ck >= 0) {
+    while (ck >= 0) {//Loop if file found
       if (sFlag > 0) { sprintf(fileSizeString, ""); }
       else { sprintf(fileSizeString, "%d bytes", fileSize); };
       printf("%s\t%s%s", fileName, fileSizeString, separator);
@@ -184,22 +269,44 @@ void cmd_mpxdir(char *args) {
   } else {
     printf("Error opening directory: %s\n", mpxDir);
   };
+
   sys_close_dir();
+
   if (separator[0] == '\t') printf("\n");
+ skip:
 }; 
+
+
+//////////////
 //Version command function
 int cmd_version() {
-printf("MPX v1.0 9/10/2013\n");
+printf( VERSION_STRING );
 }
+
+
+//////////////
 //Help command function
 int cmd_help() {
-printf("Commands:\nclear -- clears the terminal screen\ndate -- Displays the current system date\ndir -- displays the current directory\nhelp -- lists all of the commands and their functionality\nquit -- exits the terminal\nsetdate -- sets the new system date, entry syntax is DD-MM-YYYY\nversion -- displays current MPX version\n");
+printf("Commands:\n"
+       "clear -- clears the terminal screen\n"
+       "date -- Displays the current system date\n"
+       "dir -- displays the current directory ['dir -h' for more help]\n"
+       "help -- lists all of the commands and their functionality\n"
+       "quit -- exits the terminal\n"
+       "setdate -- sets the new system date, entry syntax is DD-MM-YYYY\n"
+       "version -- displays current MPX version\n");
 }
+
+
+//////////////
 //Display date command function
 int cmd_disp_date(date_rec *date) {
 sys_get_date(date);
 printf("%d-%d-%d\n",date->month, date->day, date->year);
 }
+
+
+//////////////
 //Set date command function
 int cmd_set_date(date_rec *date, char* newdate) {
 char dd[3];
@@ -264,6 +371,7 @@ date->day = atoi(dd);  //converts the system date into the new one
 date->month = atoi(mm);
 date->year = atoi(yyyy);
 sys_set_date(date);
+
 end:
 if(!successful) { //errors
 printf("ERROR: Incorrect date format please use numbers in the format of MM-DD-YYYY\n");
@@ -274,10 +382,41 @@ printf("ERROR: Date is numerically incorrect\n");
 return successful;
 }
 
-int cmd_clear() { //clears the screen, because I hate having smutt all over my screen
+
+//////////////
+//Clear screen function
+int cmd_clear() { 
 int y;
 char x[1];
 sys_req(CLEAR, TERMINAL, x, &y);
 return 1;
 }
 
+
+////////////////////////////////////////////////
+/* Park-Miller pseudo-random number generator */
+////////////////////////////////////////////////
+long rnd() {
+  long low, high, test;
+
+  high = rnd_seed / RNG_Q;
+  low = rnd_seed % RNG_Q;
+  test = RNG_A * low - RNG_R * high;
+  if (test > 0)
+    rnd_seed = test;
+  else
+    rnd_seed = test + RNG_M;
+  return rnd_seed;
+}
+
+//////////////
+//Random int from 0 to lim-1:
+int randi(int lim) {
+  return (int)((float)lim * rnd() / (RNG_M - 1.0));
+}
+
+//////////////
+//Random float 0>-1.0
+float randf() {
+  return (float)(rnd() / (RNG_M - 1.0));
+}
