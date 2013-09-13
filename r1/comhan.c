@@ -7,6 +7,10 @@
   Module R1
 
   TEAM TEAMWORK
+  Erik Bernard
+  James Epting
+  Chris Ho
+  Darren Ringer
   
   **************************/
 
@@ -31,6 +35,7 @@
   cmdArray['h'-'a'][0] = "help";\
   cmdArray['m'-'a'][0] = "mpxdir";\
   cmdArray['q'-'a'][0] = "quit";\
+  cmdArray['r'-'a'][0] = "random";\
   cmdArray['s'-'a'][0] = "setdate";\
   cmdArray['v'-'a'][0] = "version";
 
@@ -169,7 +174,9 @@ int mpx_command_loop() {
 	case 'm': cmd_mpxdir(&entry[j+1]);
 	  break;
 	case 'q': goto stop;
-	  
+	
+	case 'r': printf("%d\n", randi(atoi(&entry[j+1])));
+	  break;
 	case 's': cmd_set_date(day, &entry[j+1]);
 	  break;
 	case 'v': cmd_version();
