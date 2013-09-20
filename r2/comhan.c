@@ -139,10 +139,6 @@ int mpx_command_loop() {
       goto stop;
     };
 
-    //  while(isspace(entry[0])) {
-    //entry = entry + 1;
-    //};
-    
     spaceCount = 0;
     for(i = 0; i < sz; i++) {
       if (isspace(entry[i])) {spaceCount++;}
