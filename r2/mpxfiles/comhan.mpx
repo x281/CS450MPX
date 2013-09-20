@@ -131,36 +131,25 @@ int mpx_command_loop() {
   ck = 0;
  cloop:
   while(ck >= 0) {
-    int spaceCount; // count spaces at beginning of line
     printf("%c%c> ", pa[randi(2)], pb[randi(2)]); //cmd prompt
     ck = sys_req(READ, TERMINAL, entry, &sz);
     if (ck < 0) {
       printf("FATAL ERROR\n");
       goto stop;
     };
-
-    //  while(isspace(entry[0])) {
-    //entry = entry + 1;
-    //};
     
-    spaceCount = 0;
-    for(i = 0; i < sz; i++) {
-      if (isspace(entry[i])) {spaceCount++;}
-      else break;
-    };
-
     /* Put first word of entry in cmd buffer */
-    for(i = spaceCount; i < sz; i++) {
-      if (i > (spaceCount+CMDSIZE)) {
+    for(i = 0; i < sz; i++) {
+      if (i > CMDSIZE) {
 	printf("Command not found: too many characters\n");
 	goto broke;
       };
       c = entry[i];
       if (isspace(c)) {
-	cmd[i - spaceCount] = '\0';
+	cmd[i] = '\0';
 	break;}
       else {
-	cmd[i - spaceCount] = c;};};
+	cmd[i] = c;};};
     
     /* Scan for the command in cmdArray */
     for(i = 0; i < CMDNUM; i++) {
@@ -188,13 +177,13 @@ int mpx_command_loop() {
 	  break;
 	case 'h': cmd_help();
 	  break;
-	case 'm': cmd_mpxdir(&entry[j+1+spaceCount]);
+	case 'm': cmd_mpxdir(&entry[j+1]);
 	  break;
 	case 'q': goto stop;
 	
-	case 'r': printf("%d\n", randi(atoi(&entry[j+1+spaceCount])));
+	case 'r': printf("%d\n", randi(atoi(&entry[j+1])));
 	  break;
-	case 's': cmd_set_date(day, &entry[j+1+spaceCount]);
+	case 's': cmd_set_date(day, &entry[j+1]);
 	  break;
 	case 'v': cmd_version();
 	  break;
@@ -205,7 +194,7 @@ int mpx_command_loop() {
       };
       case 1: {
 	switch(cmd[0]) {
-	case 'd': cmd_mpxdir(&entry[j+1+spaceCount]);
+	case 'd': cmd_mpxdir(&entry[j+1]);
 	  break;
 	};
       };
@@ -277,7 +266,7 @@ void cmd_mpxdir(char *args) {
   };
   while (isspace(args[i])) i++;
   if (args[i] != '\0') {
-    printf("Unknown argument(s): %s [Type 'dir -h' for help]\n", &args[i]);
+    printf("Unknown argument(s) ['dir -h' for help]\n");
   };
 
   ck = sys_open_dir(mpxDir);
@@ -285,7 +274,6 @@ void cmd_mpxdir(char *args) {
   //Import and print directory contents
   if (ck == 0) {
     ck = sys_get_entry(&fileName[0], fileNameSize, &fileSize);
-    if (ck == 0) printf("Files in \\" MPXDIR "\\\n");
     while (ck >= 0) {//Loop if file found
       if (sFlag > 0) { sprintf(fileSizeString, ""); }
       else { sprintf(fileSizeString, "%d bytes", fileSize); };
@@ -307,7 +295,7 @@ void cmd_mpxdir(char *args) {
 //////////////
 //Version command function
 void cmd_version() {
-  printf( VERSION_STRING );
+printf( VERSION_STRING );
 }
 
 
@@ -329,94 +317,93 @@ printf("Commands:\n"
 //Display date command function
 void cmd_disp_date(date_rec *date) {
 sys_get_date(date);
- printf("%d-%d-%d\n",date->month, date->day, date->year);
+printf("%d-%d-%d\n",date->month, date->day, date->year);
 }
 
 
 //////////////
 //Set date command function
 int cmd_set_date(date_rec *date, char* newdate) {
-  char dd[3];
-  char mm[3];
-  char yyyy[5];
-  int successful = 1;  //pseudo boolean value for syntax checking
-  int errordate = 0;   //pseudo boolean value to make sure the dates entered do not violate the laws of time and space
-  int numcheck;
+char dd[3];
+char mm[3];
+char yyyy[5];
+int successful = 1;  //pseudo boolean value for syntax checking
+int errordate = 0;   //pseudo boolean value to make sure the dates entered do not violate the laws of time and space
+int numcheck;
 
-  if(strlen(newdate) != 11 || newdate[2] != '-' || newdate[5] != '-') { //format checking
-    successful = 0;
+if(strlen(newdate) != 11 || newdate[2] != '-' || newdate[5] != '-') { //format checking
+successful = 0;
 goto end;
-  }
+}
 
-  for(numcheck = 0; numcheck < strlen(newdate)-1; numcheck++) { //checking to see that the date only contains numbers
-    if(numcheck != 2 && numcheck != 5) {
-      if(!isdigit(newdate[numcheck])) {
-	successful = 0;
-	goto end;
-      }
-    }
-  }
+for(numcheck = 0; numcheck < strlen(newdate)-1; numcheck++) { //checking to see that the date only contains numbers
+	if(numcheck != 2 && numcheck != 5) {
+		if(!isdigit(newdate[numcheck])) {
+		successful = 0;
+		goto end;
+		}
+	}
+}
 
-  mm[0] = newdate[0]; //reading the date string into easier to handle pieces
-  mm[1] = newdate[1];
-  mm[2] = '\0';
-  dd[0] = newdate[3];
-  dd[1] = newdate[4];
-  dd[2] = '\0';
-  yyyy[0] = newdate[6];
-  yyyy[1] = newdate[7];
-  yyyy[2] = newdate[8];
-  yyyy[3] = newdate[9];
-  yyyy[4] = '\0';
-  
-  if(atoi(mm) > 12) {  //making sure you aren't living out on jupiter or anything
-    errordate = 1;
-    goto end;
-  }
-  switch(atoi(mm)) { 
-  case 1,3,5,7,8,10,12:
-    if(atoi(dd) > 31) {
-      errordate = 1;
-      goto end;
-    }
-  case 4,6,9,11:
-    if(atoi(dd) > 30) {
-      errordate = 1;
-      goto end;
-    }
-  case 2:
-    if(atoi(dd) > 29 && atoi(yyyy) % 4 == 0) {
-      errordate = 1;
-      goto end;
-    } else if(atoi(dd) > 28 && atoi(yyyy) % 4 != 0) {
-      errordate = 1;
-      goto end;
-    }
-  }
-  
-  date->day = atoi(dd);  //converts the system date into the new one
-  date->month = atoi(mm);
-  date->year = atoi(yyyy);
-  sys_set_date(date);
-  
- end:
-  if(!successful) { //errors
-    printf("ERROR: Incorrect date format, "
-	   "please use numbers in the format of MM-DD-YYYY\n");
-  }
-  if(errordate) {
-    printf("ERROR: Date is numerically incorrect\n");
-  }
-  return successful;
+mm[0] = newdate[0]; //reading the date string into easier to handle pieces
+mm[1] = newdate[1];
+mm[2] = '\0';
+dd[0] = newdate[3];
+dd[1] = newdate[4];
+dd[2] = '\0';
+yyyy[0] = newdate[6];
+yyyy[1] = newdate[7];
+yyyy[2] = newdate[8];
+yyyy[3] = newdate[9];
+yyyy[4] = '\0';
+
+if(atoi(mm) > 12) {  //making sure you aren't living out on jupiter or anything
+errordate = 1;
+goto end;
+}
+switch(atoi(mm)) { 
+case 1,3,5,7,8,10,12:
+	if(atoi(dd) > 31) {
+		errordate = 1;
+		goto end;
+	}
+case 4,6,9,11:
+	if(atoi(dd) > 30) {
+		errordate = 1;
+		goto end;
+	}
+case 2:
+	if(atoi(dd) > 29 && atoi(yyyy) % 4 == 0) {
+		errordate = 1;
+		goto end;
+	} else if(atoi(dd) > 28 && atoi(yyyy) % 4 != 0) {
+		errordate = 1;
+		goto end;
+	}
+}
+
+date->day = atoi(dd);  //converts the system date into the new one
+date->month = atoi(mm);
+date->year = atoi(yyyy);
+sys_set_date(date);
+
+end:
+if(!successful) { //errors
+printf("ERROR: Incorrect date format please use numbers in the format of MM-DD-YYYY\n");
+}
+if(errordate) {
+printf("ERROR: Date is numerically incorrect\n");
+}
+return successful;
 }
 
 
 //////////////
 //Clear screen function
 void cmd_clear() { 
-  int y;
-  char x[1];
-  sys_req(CLEAR, TERMINAL, x, &y);
+int y;
+char x[1];
+sys_req(CLEAR, TERMINAL, x, &y);
 }
 
 
