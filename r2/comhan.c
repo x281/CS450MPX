@@ -234,7 +234,7 @@ int mpx_command_loop() {
 //////////////
 //MPX file directory fn
 void cmd_mpxdir(char *args) {
-  char mpxDir[9] = MPXDIR;
+  char mpxDir[128] = MPXDIR;
   int i = 0;
 
   //helpers for sys fn
@@ -249,17 +249,17 @@ void cmd_mpxdir(char *args) {
 
   int ck;//status
 
-  if (args[0] == '-') {
+  if (args[i] == '-') {
     while ((args[i+1] >= 'a') && (args[i+1] <= 'z')) {
       /* Argument Handling */
       switch (args[++i]) {
       case 'w':  {// wide format, continuous line out
 	sprintf(separator, "\t");// replace \n with \t
 	break; }
-      case 's': {// short format, no size information
+      case 's': { // short format, no size information
 	sFlag = 1;// suppress size string output
 	break; }
-      case 'h': {// help request
+      case 'h': { // help request
 	printf("Supported arguments:\n"
 	       "  -h : Help (display this information)\n"
 	       "  -s : Short format (no size info)\n"
@@ -271,9 +271,14 @@ void cmd_mpxdir(char *args) {
     };
     i++;
   };
+
   while (isspace(args[i])) i++;
-  if (args[i] != '\0') {
-    printf("Unknown argument(s): %s [Type 'dir -h' for help]\n", &args[i]);
+
+  /* Read in subdirectory */
+  if (args[i] != '\0') {      
+    if (args[i] != '\\') strcat(mpxDir, "\\");
+    strcat(mpxDir, &args[i]);         //add subdirectory
+    mpxDir[strlen(mpxDir) - 1] = '\0';//trim newline
   };
 
   ck = sys_open_dir(mpxDir);
@@ -281,20 +286,20 @@ void cmd_mpxdir(char *args) {
   //Import and print directory contents
   if (ck == 0) {
     ck = sys_get_entry(&fileName[0], fileNameSize, &fileSize);
-    if (ck == 0) printf("Files in \\" MPXDIR "\\\n");
+    if (ck == 0) printf(".MPX files in \\%s\\\n", mpxDir);
     while (ck >= 0) {//Loop if file found
       if (sFlag > 0) { sprintf(fileSizeString, ""); }
       else { sprintf(fileSizeString, "%d bytes", fileSize); };
-      printf("%s\t%s%s", fileName, fileSizeString, separator);
+      printf("   %9s %s%s", fileName, fileSizeString, separator);
       ck = sys_get_entry(fileName, fileNameSize, &fileSize);
     };
   } else {
     printf("Error opening directory: %s", mpxDir);
     separator[0] = '\t'; //flag for terminal \n insertion
   };
-
+  
   sys_close_dir();
-
+  
   if (separator[0] == '\t') printf("\n");
  skip:
 }; 
