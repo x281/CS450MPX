@@ -16,7 +16,7 @@
 
 
 //Version identification
-#define VERSION_STRING "MPX v1.01 9/19/2013\n"
+#define VERSION_STRING "MPX v1.02 9/21/2013\n"
 
 
 //Largest command size: 
@@ -25,6 +25,8 @@
 //Max commands beginning with same letter:
 #define CMDNUM 2
 
+//Max Y Value taken from mpx_supt.c
+#define TERMINAL_Y 24
 
 //Possible command index
 #define CMD_IDX \
@@ -246,6 +248,11 @@ void cmd_mpxdir(char *args) {
   //format control 
   char separator[4] = "\n";
   int sFlag = 0;
+  int pFlag = 0;
+  int linesPrinted;
+  int entriesPrinted;
+
+  int bytesTotal = 0;
 
   int ck;//status
 
@@ -254,14 +261,19 @@ void cmd_mpxdir(char *args) {
       /* Argument Handling */
       switch (args[++i]) {
       case 'w':  {// wide format, continuous line out
-	sprintf(separator, "\t");// replace \n with \t
+	sprintf(separator, "  ");// replace \n with \t
 	break; }
+      case 'p' : {
+	pFlag = 1;
+	linesPrinted = 0;
+	break;}
       case 's': { // short format, no size information
 	sFlag = 1;// suppress size string output
 	break; }
       case 'h': { // help request
 	printf("Supported arguments:\n"
 	       "  -h : Help (display this information)\n"
+	       "  -p : Pause at end-of-page (for long listings)\n"
 	       "  -s : Short format (no size info)\n"
 	       "  -w : Wide format (no line breaks)\n");
 	goto skip; }
@@ -282,25 +294,65 @@ void cmd_mpxdir(char *args) {
   };
 
   ck = sys_open_dir(mpxDir);
+  entriesPrinted = 0;
 
   //Import and print directory contents
   if (ck == 0) {
     ck = sys_get_entry(&fileName[0], fileNameSize, &fileSize);
     if (ck == 0) printf(".MPX files in \\%s\\\n", mpxDir);
     while (ck >= 0) {//Loop if file found
-      if (sFlag > 0) { sprintf(fileSizeString, ""); }
-      else { sprintf(fileSizeString, "%d bytes", fileSize); };
-      printf("   %9s %s%s", fileName, fileSizeString, separator);
+      if (sFlag > 0) { sprintf(fileSizeString, " \t"); }
+      else { sprintf(fileSizeString, "%10dK", 1 + (fileSize / 1024)); };
+      if (sFlag == 0) {
+	int k;
+	for(k = 0; k < strlen(fileSizeString); k++) {
+	  if (isspace(fileSizeString[k])) fileSizeString[k] = '.';
+	};
+      };
+      printf("   %9s%s%s", fileName, fileSizeString, separator);
+      entriesPrinted++;
+      bytesTotal += fileSize;
+      if (separator[0] == '\n') { linesPrinted++; }
+      else {
+	if (((entriesPrinted % 3) == 0) &&
+	    (sFlag == 0)) { 
+	  linesPrinted++; 
+	  printf("\n");
+	}
+	else if (((entriesPrinted % 5) == 0) &&
+		 (sFlag > 0)) {
+	  linesPrinted++;
+	};
+      };
+      if (pFlag > 0) {
+	if (((linesPrinted % TERMINAL_Y) == 0) &&
+	    (((sFlag == 0) && 
+	      (((entriesPrinted % 3) == 0) || 
+	       (separator[0] == '\n'))) ||
+	     ((sFlag > 0) && 
+	      (((entriesPrinted % 5) == 0) ||
+	       (separator[0] == '\n'))))) {
+	  printf("Press any key to continue...\n");
+	  getch();
+	};
+      };
       ck = sys_get_entry(fileName, fileNameSize, &fileSize);
     };
   } else {
     printf("Error opening directory: %s", mpxDir);
-    separator[0] = '\t'; //flag for terminal \n insertion
+    separator[0] = ' '; //flag for terminal \n insertion
   };
   
   sys_close_dir();
   
-  if (separator[0] == '\t') printf("\n");
+  if ((separator[0] == ' ') &&
+      (((sFlag == 0) && ((entriesPrinted % 3) != 0)) ||
+       ((sFlag > 0) && ((entriesPrinted % 5) != 0)))) printf("\n");
+  if (entriesPrinted > 0) {
+    printf("\t   Total bytes: %d\n"
+	   "\t   Total files: %d\n",
+	   bytesTotal, entriesPrinted);
+  };
  skip:
 }; 
 
