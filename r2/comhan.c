@@ -249,10 +249,10 @@ void cmd_mpxdir(char *args) {
   char separator[4] = "\n";
   int sFlag = 0;
   int pFlag = 0;
-  int linesPrinted;
-  int entriesPrinted;
+  int linesPrinted = 0;
+  int entriesPrinted = 0;
 
-  int bytesTotal = 0;
+  long bytesTotal = 0L;
 
   int ck;//status
 
@@ -295,13 +295,17 @@ void cmd_mpxdir(char *args) {
 
   ck = sys_open_dir(mpxDir);
   entriesPrinted = 0;
+  bytesTotal = 0L;
 
   //Import and print directory contents
   if (ck == 0) {
     ck = sys_get_entry(&fileName[0], fileNameSize, &fileSize);
+
     if (ck == 0) printf(".MPX files in \\%s\\\n", mpxDir);
+    if (sFlag && (separator[0] != '\n')) printf("  ");
+
     while (ck >= 0) {//Loop if file found
-      if (sFlag > 0) { sprintf(fileSizeString, " \t"); }
+      if (sFlag > 0) { sprintf(fileSizeString, "\t"); }
       else { sprintf(fileSizeString, "%10dK", 1 + (fileSize / 1024)); };
       if (sFlag == 0) {
 	int k;
@@ -309,9 +313,10 @@ void cmd_mpxdir(char *args) {
 	  if (isspace(fileSizeString[k])) fileSizeString[k] = '.';
 	};
       };
-      printf("   %9s%s%s", fileName, fileSizeString, separator);
-      entriesPrinted++;
-      bytesTotal += fileSize;
+      printf(" %9s%s%s", fileName, fileSizeString, separator);
+      // printf("\n\t%d\t%ld\n", entriesPrinted, bytesTotal);
+      entriesPrinted = entriesPrinted + 1;
+      bytesTotal = bytesTotal + fileSize;
       if (separator[0] == '\n') { linesPrinted++; }
       else {
 	if (((entriesPrinted % 3) == 0) &&
@@ -340,19 +345,21 @@ void cmd_mpxdir(char *args) {
     };
   } else {
     printf("Error opening directory: %s", mpxDir);
-    separator[0] = ' '; //flag for terminal \n insertion
+    if (mpxDir[strlen(mpxDir) - 1] != '\n') printf("\n");
   };
   
-  sys_close_dir();
   
   if ((separator[0] == ' ') &&
       (((sFlag == 0) && ((entriesPrinted % 3) != 0)) ||
        ((sFlag > 0) && ((entriesPrinted % 5) != 0)))) printf("\n");
   if (entriesPrinted > 0) {
-    printf("\t   Total bytes: %d\n"
+    printf("\t   Total bytes: %ld\n"
 	   "\t   Total files: %d\n",
 	   bytesTotal, entriesPrinted);
   };
+  
+  sys_close_dir();
+
  skip:
 }; 
 
