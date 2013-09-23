@@ -20,11 +20,13 @@ ProcessControlBlock* allocate_pcb() {
 };
 
 int free_pcb(ProcessControlBlock* pcb) {
-  if (sys_free_mem(pcb) == 0) {
-    return 0; }
-  else {
-    return -1;
+
+  if ((sys_free_mem(pcb->stackTop) == 0) &&
+      (sys_free_mem(pcb->stackSpace) == 0) &&
+      (sys_free_mem(pcb) == 0)) {
+    return 0; 
   };
+  return -1;
 };
 
 int setup_pcb(ProcessControlBlock* pcb, 

@@ -33,8 +33,10 @@
 
 
 //Function Prototypes
+/* comhan.c */
 int   mpx_command_loop();
 
+/* commands.c */
 void  cmd_mpxdir(char*);
 void  cmd_version();
 void  cmd_help();
@@ -42,12 +44,13 @@ int   cmd_set_date(date_rec*, char*);
 void  cmd_disp_date(date_rec*);
 void  cmd_clear();
 
+/* prng.c */
 long  rnd();
 int   randi(int);
 float randf();
 void  rand_init();
 
-
+/* pcb.c */
 ProcessControlBlock* allocate_pcb();
                 int  free_pcb(ProcessControlBlock*);
                 int  setup_pcb(ProcessControlBlock*, 
@@ -209,11 +212,12 @@ int mpx_command_loop() {
    /* TEST COMMAND */
 	case 't': {
 	  ProcessControlBlock *test_pcb;
-	  char name[9] = "test pcb";
+	  char *name = "test pcb";
 	  proc_class class = pgm_proc;
 	  test_pcb = allocate_pcb();
  	  printf("TEST\n%d\n",
 		 setup_pcb(test_pcb, name, class));
+	  free_pcb(test_pcb);
 	  break;
 	};
    // VERSION:
