@@ -27,7 +27,9 @@
   cmdArray['q'-'a'][0] = "quit";\
   cmdArray['r'-'a'][0] = "random";\
   cmdArray['s'-'a'][0] = "setdate";\
+  cmdArray['t'-'a'][0] = "test";\
   cmdArray['v'-'a'][0] = "version";
+
 
 
 //Function Prototypes
@@ -46,12 +48,24 @@ float randf();
 void  rand_init();
 
 
+ProcessControlBlock* allocate_pcb();
+                int  free_pcb(ProcessControlBlock*);
+                int  setup_pcb(ProcessControlBlock*, 
+			       char*, proc_class);
+ProcessControlBlock* find_pcb(char*);
+                int  insert_pcb(ProcessControlBlock, QueueDescriptor, int);
+                int  remove_pcb(ProcessControlBlock*, QueueDescriptor);
+
+
 
 ///////////////////
 /* MAIN FUNCTION */
 ///////////////////
 int main() {
   int ini;
+
+  QueueDescriptor readyQueue;
+  QueueDescriptor blockedQueue;
 
   rand_init();
   
@@ -192,6 +206,16 @@ int mpx_command_loop() {
    // SETDATE:
 	case 's': cmd_set_date(day, &entry[j+1+spaceCount]);
 	  break;
+   /* TEST COMMAND */
+	case 't': {
+	  ProcessControlBlock *test_pcb;
+	  char name[9] = "test pcb";
+	  proc_class class = pgm_proc;
+	  test_pcb = allocate_pcb();
+ 	  printf("TEST\n%d\n",
+		 setup_pcb(test_pcb, name, class));
+	  break;
+	};
    // VERSION:
 	case 'v': cmd_version();
 	  break;
@@ -230,6 +254,5 @@ int mpx_command_loop() {
   printf("[MPX System Shutdown]");
   return 0;
 };
-
 
 
