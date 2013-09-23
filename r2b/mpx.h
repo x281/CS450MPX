@@ -8,7 +8,8 @@
 //MPX file directory
 #define MPXDIR "mpxfiles"
 
-
+//Process stack size, in bytes
+#define PCB_STACK_SIZE 1024
 
 //Largest command size: 
 #define CMDSIZE 8
@@ -50,7 +51,7 @@ typedef struct {
 typedef struct {
   struct ProcessRecord *next;
   struct ProcessRecord *prev;
-   ProcessControlBlock  pcb;
+   ProcessControlBlock *pcb;
 } ProcessRecord;
 
 

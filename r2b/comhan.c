@@ -56,8 +56,8 @@ ProcessControlBlock* allocate_pcb();
                 int  setup_pcb(ProcessControlBlock*, 
 			       char*, proc_class);
 ProcessControlBlock* find_pcb(char*);
-                int  insert_pcb(ProcessControlBlock, QueueDescriptor, int);
-                int  remove_pcb(ProcessControlBlock*, QueueDescriptor);
+                int  insert_pcb(ProcessControlBlock*, QueueDescriptor*, int);
+                int  remove_pcb(ProcessControlBlock*, QueueDescriptor*);
 
 
 
