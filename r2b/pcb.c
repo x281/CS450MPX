@@ -5,9 +5,7 @@
 ProcessControlBlock* allocate_pcb() {
   ProcessControlBlock *data;
   int i;
-  data = sys_alloc_mem((9 * sizeof(char)) +
-		       (sizeof(int) * 5) +
-		       (sizeof(unsigned char *) * 4));
+  data = sys_alloc_mem(sizeof(ProcessControlBlock));
 		       
   data->stackSpace = sys_alloc_mem(PCB_STACK_SIZE * sizeof(unsigned char));
   for(i = 0; i < PCB_STACK_SIZE; i++) {
