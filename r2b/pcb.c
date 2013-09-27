@@ -6,15 +6,9 @@ ProcessControlBlock* allocate_pcb() {
   ProcessControlBlock *data;
   int i;
   data = sys_alloc_mem((9 * sizeof(char)) +
-		       (sizeof(proc_class)) +
-		       (sizeof(int)) +
-		       (sizeof(proc_state)) + 
-		       (sizeof(int)) +
-		       (sizeof(unsigned char *)) +
-		       (sizeof(unsigned char *)) +
-		       (sizeof(int)) +
-		       (sizeof(unsigned char *)) +
-		       (sizeof(unsigned char *)));
+		       (sizeof(int) * 5) +
+		       (sizeof(unsigned char *) * 4));
+		       
   data->stackSpace = sys_alloc_mem(PCB_STACK_SIZE * sizeof(unsigned char));
   for(i = 0; i < PCB_STACK_SIZE; i++) {
     printf(".");
@@ -37,7 +31,7 @@ int free_pcb(ProcessControlBlock* pcb) {
 
 int setup_pcb(ProcessControlBlock* pcb, 
 	      char* set_name,
-	      proc_class set_class) {
+	      int set_class) {
   int retVal;
   retVal = 0;
   /*Return SETUP_110, SETUP_101, 
@@ -51,8 +45,8 @@ int setup_pcb(ProcessControlBlock* pcb,
     } else {
       strcpy(pcb->name, set_name);
     };
-    if ((set_class != sys_proc) &&
-	(set_class != pgm_proc)) {
+    if ((set_class != SYS) &&
+	(set_class != APP)) {
       retVal -= 7;
     } else {
       pcb->class = set_class;
@@ -60,7 +54,7 @@ int setup_pcb(ProcessControlBlock* pcb,
     if (retVal == 0) {
       //Finish initializing fields:
       pcb->priority    = -128;
-      pcb->state       = ready_s;
+      pcb->state       = READY;
       pcb->isSuspended = 0;
       pcb->memorySize  = 0;
       pcb->load_addr   = NULL;
