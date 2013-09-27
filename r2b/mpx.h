@@ -27,18 +27,20 @@
 #define SETUP_100 -12
 #define SETUP_0XX -3
 
-
-
-/* PROCESS CLASSES & STATES */
-typedef enum {sys_proc, pgm_proc} proc_class;
-typedef enum {running_s, ready_s, blocked_s} proc_state;
+//flags for pcb class and state
+#define SYS 1;
+#define APP 2;
+#define RUN 1;
+#define READY 2;
+#define BLOCK 3;
+#define SUSP 4;
 
 /* PROCESS CONTROL BLOCK */
 typedef struct {
            char  name[9];
-     proc_class  class;
+           int   class;
            int   priority;
-     proc_state  state;
+           int   state;
            int   isSuspended;
   unsigned char *stackSpace;
   unsigned char *stackTop;
