@@ -71,15 +71,15 @@ int create_pcb(char* name, int cls, int priority) {
   newpcb = allocate_pcb();
   return setup_pcb(newpcb, name, cls);
 };
-
+/*
 void queue_init() {
 READYQ = sys_alloc_mem(sizeof(ProcessRecord));
 BLOCKQ = sys_alloc_mem(sizeof(ProcessRecord));
 RDESC = sys_alloc_mem(sizeof(QueueDescriptor));
 BDESC = sys_alloc_mem(sizeof(QueueDescriptor));
-}
+}*/
 void insert_pcb(ProcessControlBlock *newpcb, int mode) {
- ProcessRecord *newPtr, *previousPtr, *currentPtr;
+ ProcessRecord *newPtr, *previousPtr, *currentPtr;/*
   newPtr = sys_alloc_mem(sizeof(ProcessRecord));
   
   if (newPtr != NULL) {
@@ -121,11 +121,11 @@ void insert_pcb(ProcessControlBlock *newpcb, int mode) {
 	};
   } else {
       printf("Process not inserted. No memory available.\n");
-   };
+      };*/
 }
  
 ProcessRecord* find_pcb(char* name) {
-ProcessRecord *tempPtr;
+ProcessRecord *tempPtr;/*
 int found = 0;
 int searchedblock = 0;
 tempPtr = RDESC->head;
@@ -147,7 +147,7 @@ while(tempPtr != NULL) {
 	}
 }
 if(!found){tempPtr = NULL;}
-return tempPtr;
+return tempPtr;*/
 }
 
 int remove_pcb(char* name) {
