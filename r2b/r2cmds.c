@@ -101,15 +101,45 @@ void cmd_mkproc(char* s, ProcessRecord* queue) {
 void cmd_rmproc(char* s, ProcessRecord* queue) {
   remove_pcb(queue, s);
 };
+
 void cmd_block(char* s) {
+  ProcessControlBlock* target;
+  target = find_pcb(name);
+  if (target) {
+    target->state = BLOCK;
+    insert_pcb(target, 0);
+    remove_pcb(target);
+  }	
 };
 void cmd_unblock(char* s) {
+  ProcessControlBlock* target;
+  target = find_pcb(name);
+  if (target) {
+    target->state = READY;
+    insert_pcb(target, 1);
+    remove_pcb(target);
+  }
 };
 void cmd_setp(char* s) {
+  ProcessControlBlock* target;
+  target = find_pcb(name);
+  if (target) {
+    target->priority = newPriority;
+  }	
 };
 void cmd_suspend(char* s) {
+  ProcessControlBlock* target;
+  target = find_pcb(name);
+  if (target) {
+    target->isSuspended = 1;
+  }
 };
 void cmd_resume(char* s) {
+  ProcessControlBlock* target;
+  target = find_pcb(name);
+  if (target) {
+    target->isSuspended = 0;
+  }	
 };
 void cmd_showpcb(char* s) {
 };
