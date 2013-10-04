@@ -68,11 +68,10 @@ typedef struct {
 } QueueDescriptor;
 
 
-/*QUEUE LINKER*/
-typedef struct {
-  ProcessRecord *next;
-  ProcessRecord *prev;
-  int state;
-  char* name;
-} Linker;
+/*GLOBAL QUEUES AND QUEUE DESCRIPTORS*/
+extern ProcessRecord* READYQ;
+extern ProcessRecord* BLOCKQ;
+extern QueueDescriptor* RDESC;
+extern QueueDescriptor* BDESC;
+
 
