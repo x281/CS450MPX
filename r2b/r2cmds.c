@@ -120,7 +120,7 @@ void cmd_unblock(char* s) {
     remove_pcb(target);
   }
 };
-void cmd_setp(char* s) {
+void cmd_setp(char* s, int newPriority) {
   ProcessControlBlock* target;
   target = find_pcb(name);
   if (target) {
