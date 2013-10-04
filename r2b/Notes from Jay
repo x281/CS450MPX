@@ -1,9 +1,0 @@
-Notes:
-
-Added a new structure called linker, this links the ready queue and the blocked queue together so in the
-find and insert functions I can parse through all of the queues with one address, also, this will make
-the show functions easier to do. I think we are also supposed to keep track of how many processes are in the
-queue, I figured this would be easiest to do in the comhan function after a successful insertion. Also I just realized
-That I changed BLOCK to BLOCKED in the header file. A search and replace should fix that haha sorry.
-
---Jay
