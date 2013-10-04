@@ -43,8 +43,8 @@ int setup_pcb(ProcessControlBlock* pcb,
     } else {
       strcpy(pcb->name, set_name);
     };
-    if ((set_class != SYS) &&
-	(set_class != APP)) {
+    if ((set_class != SYS ) &&
+	(set_class != APP )) {
       retVal -= 7;
     } else {
       pcb->class = set_class;

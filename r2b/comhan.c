@@ -52,12 +52,11 @@ void  rand_init();
 
 /* pcb.c */
 ProcessControlBlock* allocate_pcb();
-                int  free_pcb(ProcessControlBlock*);
-                int  setup_pcb(ProcessControlBlock*, 
-			       char*, proc_class);
+int  free_pcb(ProcessControlBlock*);
+int  setup_pcb(ProcessControlBlock*, char*, int);
 ProcessControlBlock* find_pcb(char*);
-                int  insert_pcb(ProcessControlBlock*, QueueDescriptor*, int);
-                int  remove_pcb(ProcessControlBlock*, QueueDescriptor*);
+int  insert_pcb(ProcessControlBlock*, QueueDescriptor*, int);
+int  remove_pcb(ProcessControlBlock*, QueueDescriptor*);
 
 
 
@@ -213,7 +212,7 @@ int mpx_command_loop() {
 	case 't': {
 	  ProcessControlBlock *test_pcb;
 	  char *name = "test pcb";
-	  proc_class class = pgm_proc;
+	  int class = APP;
 	  test_pcb = allocate_pcb();
  	  printf("TEST\n%d\n",
 		 setup_pcb(test_pcb, name, class));

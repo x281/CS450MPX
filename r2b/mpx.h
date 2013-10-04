@@ -28,12 +28,12 @@
 #define SETUP_0XX -3
 
 //flags for pcb class and state
-#define SYS 1;
-#define APP 2;
-#define RUN 1;
-#define READY 2;
-#define BLOCK 3;
-#define SUSP 4;
+#define SYS 1
+#define APP 2
+#define RUN 1
+#define READY 2
+#define BLOCK 3
+#define SUSP 4
 
 /* PROCESS CONTROL BLOCK */
 typedef struct {
