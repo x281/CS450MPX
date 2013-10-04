@@ -15,7 +15,7 @@
 #define CMDSIZE 8
 
 //Max commands beginning with same letter:
-#define CMDNUM 2
+#define CMDNUM 7
 
 //Max Y Value taken from mpx_supt.c
 #define TERMINAL_Y 24
@@ -27,12 +27,16 @@
 #define SETUP_100 -12
 #define SETUP_0XX -3
 
+
+#define PRIORITY 1
+#define FIFO 0
+
 //flags for pcb class and state
 #define SYS 1
 #define APP 2
 #define RUN 1
 #define READY 2
-#define BLOCK 3
+#define BLOCKED 3
 #define SUSP 4
 
 /* PROCESS CONTROL BLOCK */
@@ -42,7 +46,7 @@ typedef struct {
            int   priority;
            int   state;
            int   isSuspended;
-  unsigned char *stackSpace;
+  unsigned char  stackSpace[PCB_STACK_SIZE];
   unsigned char *stackTop;
            int   memorySize;
   unsigned char *load_addr;
@@ -62,4 +66,13 @@ typedef struct {
   ProcessRecord *head;
   ProcessRecord *tail;
 } QueueDescriptor;
+
+
+/*QUEUE LINKER*/
+typedef struct {
+  ProcessRecord *next;
+  ProcessRecord *prev;
+  int state;
+  char* name;
+} Linker;
 
