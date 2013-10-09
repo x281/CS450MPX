@@ -2,25 +2,26 @@
 #include "mpx_supt.h"
 #include "mpx.h"
 
+QueueDescriptor *READYQ;
+QueueDescriptor *BLOCKQ;
+
 ProcessControlBlock* allocate_pcb() {
   ProcessControlBlock* result;
   int i;
-  result = (ProcessControlBlock*)malloc((size_t)sizeof(ProcessControlBlock));
+  result = (ProcessControlBlock*)sys_alloc_mem(sizeof(ProcessControlBlock));
+  result->stackSpace = (unsigned char*)sys_alloc_mem(PCB_STACK_SIZE *
+						     sizeof(unsigned char));
   for(i = 0; i < PCB_STACK_SIZE; i++) {
-    result->stackSpace[i] = (unsigned char)'1';
-    //    printf("%c", result->stackSpace[i]);
+    result->stackSpace[i] = (unsigned char)'0';
   };
   result->stackTop = &(result->stackSpace[PCB_STACK_SIZE]);
-  //  printf("\n");
   return result;
 };
 
 
 int free_pcb(ProcessControlBlock* pcb) {
-  
-  if (//(sys_free_mem(pcb->stackTop) == 0) &&
-      //(sys_free_mem(pcb->stackSpace) == 0) &&
-      (free(pcb) == 0)) {
+  if ((sys_free_mem(pcb->stackSpace) == 0) &&
+      (sys_free_mem(pcb) == 0)) {
     return 0; 
   };
   return -1;
@@ -71,15 +72,75 @@ int create_pcb(char* name, int cls, int priority) {
   newpcb = allocate_pcb();
   return setup_pcb(newpcb, name, cls);
 };
+
+
+void insert_pcb(ProcessControlBlock* ins, QueueDescriptor* dest, int pMode) {
+  ProcessRecord* new;
+  new = (ProcessRecord *)sys_alloc_mem(sizeof(ProcessRecord));
+  if (new != NULL) {
+    new->pcb = ins;
+    if (dest->head == NULL) {
+      // This PCB will comprise the whole queue:
+      new->next = new;
+      new->prev = new;
+      dest->head = new;
+      dest->tail = new;
+    } else {// Queue not empty!
+      if (pMode) {
+	// Insert by priority:
+	ProcessRecord* ptr = dest->head;
+	while (ptr->pcb->priority > new->pcb->priority) {
+	  ptr = ptr->next;
+	  if (ptr == dest->tail) break;
+	};
+
+	if (ptr->pcb->priority > new->pcb->priority) {
+	  // Insert after pointer, reassign tail:
+	  ProcessRecord* tmp = ptr->next;
+	  tmp->prev = new;
+	  ptr->next = new;
+	  new->next = dest->head;
+	  dest->tail = new;
+	  new->prev = ptr;
+	} else {
+	  ProcessRecord* tmp = ptr->prev;
+	  if (ptr == dest->head) {
+	    // move head:
+	    dest->head = new;
+	  };
+	  // insert ahead of pointer:
+	  new->next = ptr;
+	  tmp->next = new;
+	  new->prev = ptr->prev;
+	  ptr->prev = new;
+	};
+      } else {
+	// Insert at tail (FIFO mode!)
+	ProcessRecord* ptr = dest->tail;
+	ProcessRecord* tmp = ptr->next;
+	tmp->prev = new;
+	ptr->next = new;
+	new->next = dest->head;
+	dest->tail = new;
+	new->prev = ptr;
+      };
+    };
+  } else {
+    printf("ERROR: Unable to allocate PCB record space\n");
+  };
+  printf("Inserted: %s\t%d\n"
+	 "    Head: %s\t%d\n"
+	 "    Tail: %s\t%d\n",
+	 new->pcb->name, new->pcb->priority,
+	 dest->head->pcb->name, dest->head->pcb->priority,
+	 dest->tail->pcb->name, dest->tail->pcb->priority
+	 );
+};
+
+
 /*
-void queue_init() {
-READYQ = sys_alloc_mem(sizeof(ProcessRecord));
-BLOCKQ = sys_alloc_mem(sizeof(ProcessRecord));
-RDESC = sys_alloc_mem(sizeof(QueueDescriptor));
-BDESC = sys_alloc_mem(sizeof(QueueDescriptor));
-}*/
 void insert_pcb(ProcessControlBlock *newpcb, int mode) {
- ProcessRecord *newPtr, *previousPtr, *currentPtr;/*
+ProcessRecord *newPtr, *previousPtr, *currentPtr;*//*
   newPtr = sys_alloc_mem(sizeof(ProcessRecord));
   
   if (newPtr != NULL) {
@@ -122,7 +183,7 @@ void insert_pcb(ProcessControlBlock *newpcb, int mode) {
   } else {
       printf("Process not inserted. No memory available.\n");
       };*/
-}
+//}
  
 ProcessRecord* find_pcb(char* name) {
 ProcessRecord *tempPtr;/*
@@ -151,21 +212,21 @@ return tempPtr;*/
 }
 
 int remove_pcb(char* name) {
-int freed;
-ProcessRecord *target, *temp;
-target = find_pcb(name);
-
-if(target != NULL) {
-temp = target->prev;
-temp->next = target->next;
-
-temp = target->next;
-temp->prev = target->next;
-sys_free_mem(target);
-freed = 1;
-} else {
-printf("Failed to remove process\n");
-freed = 0;
-}
-return freed;
+  int freed;
+  ProcessRecord *target, *temp;
+  target = find_pcb(name);
+  
+  if(target != NULL) {
+    temp = target->prev;
+    temp->next = target->next;
+    
+    temp = target->next;
+    temp->prev = target->next;
+    sys_free_mem(target);
+    freed = 1;
+  } else {
+    printf("Failed to remove process\n");
+    freed = 0;
+  }
+  return freed;
 }

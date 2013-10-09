@@ -41,14 +41,14 @@
 
 /* PROCESS CONTROL BLOCK */
 typedef struct {
-           char  name[9];
-           int   class;
-           int   priority;
-           int   state;
-           int   isSuspended;
-  unsigned char  stackSpace[PCB_STACK_SIZE];
+  char name[9];
+  int class;
+  int priority;
+  int state;
+  int isSuspended;
+  unsigned char **stackSpace;
   unsigned char *stackTop;
-           int   memorySize;
+  int memorySize;
   unsigned char *load_addr;
   unsigned char *exec_addr;
 } ProcessControlBlock;
@@ -69,9 +69,7 @@ typedef struct {
 
 
 /*GLOBAL QUEUES AND QUEUE DESCRIPTORS*/
-extern ProcessRecord* READYQ;
-extern ProcessRecord* BLOCKQ;
-extern QueueDescriptor* RDESC;
-extern QueueDescriptor* BDESC;
+extern QueueDescriptor *READYQ;
+extern QueueDescriptor *BLOCKQ;
 
 

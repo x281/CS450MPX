@@ -93,6 +93,7 @@ void cmd_mkproc(char* s, ProcessRecord* queue) {
     printf("Process data initialized:\n");
     printf("ID:       \t%s\nCLASS:    \t%d\nPRIORITY:\t%d\n", 
 	   newpcb->name, newpcb->class, newpcb->priority);
+    insert_pcb(newpcb, READYQ, 1);
     
   };
  fail:
