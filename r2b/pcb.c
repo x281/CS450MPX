@@ -138,6 +138,27 @@ void insert_pcb(ProcessControlBlock* ins, QueueDescriptor* dest, int pMode) {
 };
 
 
+ProcessRecord* find_pcb(char* name) {
+  if (READYQ->head != NULL) {
+    //Search the Ready Queue:
+    ProcessRecord* ptr = READYQ->head;
+    do {
+      if (strcmp(ptr->pcb->name, name) == 0) return ptr;
+      ptr = ptr->next;
+    } while (ptr != READYQ->head);
+  };
+  if (BLOCKQ->head != NULL) {
+    //Search the Blocked Queue:
+    ProcessRecord* ptr = BLOCKQ->head;    
+    do {
+      if (strcmp(ptr->pcb->name, name) == 0) return ptr;
+      ptr = ptr->next;
+    } while (ptr != BLOCKQ->head);
+  };
+  return NULL;
+};
+
+
 /*
 void insert_pcb(ProcessControlBlock *newpcb, int mode) {
 ProcessRecord *newPtr, *previousPtr, *currentPtr;*//*
@@ -184,9 +205,9 @@ ProcessRecord *newPtr, *previousPtr, *currentPtr;*//*
       printf("Process not inserted. No memory available.\n");
       };*/
 //}
- 
+/* 
 ProcessRecord* find_pcb(char* name) {
-ProcessRecord *tempPtr;/*
+ProcessRecord *tempPtr;
 int found = 0;
 int searchedblock = 0;
 tempPtr = RDESC->head;
@@ -208,8 +229,9 @@ while(tempPtr != NULL) {
 	}
 }
 if(!found){tempPtr = NULL;}
-return tempPtr;*/
+return tempPtr;
 }
+*/
 
 int remove_pcb(char* name) {
   int freed;

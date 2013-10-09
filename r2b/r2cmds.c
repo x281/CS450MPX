@@ -146,7 +146,20 @@ void cmd_resume(char* s, QueueDescriptor* rdyQueue, QueueDescriptor* blkQueue) {
     }*/	
 };
 void cmd_showpcb(char* s, QueueDescriptor* rdyQueue, QueueDescriptor* blkQueue) {
+  ProcessRecord* tmp;
+  s[strlen(s)-1] = '\0';
+  tmp  = find_pcb(s);
+  printf("Searching for %s\n", s);
+  if (tmp != NULL) {
+    printf("PCB Name: %s\n"
+	   "   Class: %c\n"
+	   "Priority: %d\n", 
+	   tmp->pcb->name,
+	   (tmp->pcb->class == 1) ? 'S' : 'A',
+	   tmp->pcb->priority);
+  };
 };
+
 void cmd_showall(char* s, QueueDescriptor* rdyQueue, QueueDescriptor* blkQueue) {
 };
 void cmd_showrdy(char* s, QueueDescriptor* queue) {
