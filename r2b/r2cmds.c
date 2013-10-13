@@ -2,7 +2,7 @@
 #include "mpx_supt.h"
 #include "mpx.h"
 
-void cmd_mkproc(char* s, ProcessRecord* queue) {
+void cmd_mkproc(char* s) {
   char namebuf[16] = "";
   char typebuf[16] = "";
   char priobuf[16] = "";
@@ -99,12 +99,20 @@ void cmd_mkproc(char* s, ProcessRecord* queue) {
  fail:
   if (failure) printf("Error creating process\n");
 };
-void cmd_rmproc(char* s, QueueDescriptor* rdyQueue, QueueDescriptor* blkQueue) {/*
-  remove_pcb(queue, s);
-										*/
+
+void cmd_rmproc(char* s) {
+  ProcessRecord* tgt;
+  s[strlen(s)-1] = '\0';
+  tgt = find_pcb(s);
+
+  if ((remove_pcb(READYQ, s) == 0) ||
+      (remove_pcb(BLOCKQ, s) == 0)) {
+    free_pcb(tgt->pcb);
+    sys_free_mem(tgt);
+  };
 };
 
-void cmd_block(char* s, QueueDescriptor* rdyQueue, QueueDescriptor* blkQueue) {
+void cmd_block(char* s) {
   ProcessControlBlock* target; /*
   target = find_pcb(name);
   if (target) {
@@ -113,8 +121,9 @@ void cmd_block(char* s, QueueDescriptor* rdyQueue, QueueDescriptor* blkQueue) {
     remove_pcb(target);
     }	*/
 };
-void cmd_unblock(char* s, QueueDescriptor* rdyQueue, QueueDescriptor* blkQueue) {/*
-  ProcessControlBlock* target;
+
+void cmd_unblock(char* s) {
+  ProcessControlBlock* target; /*
   target = find_pcb(name);
   if (target) {
     target->state = READY;
@@ -122,7 +131,8 @@ void cmd_unblock(char* s, QueueDescriptor* rdyQueue, QueueDescriptor* blkQueue) 
     remove_pcb(target);
     }*/
 };
-void cmd_setp(char* s, QueueDescriptor* rdyQueue, QueueDescriptor* blkQueue) {
+
+void cmd_setp(char* s) {
   ProcessControlBlock* target;/*
   target = find_pcb(name);
   if (target) {
@@ -130,22 +140,25 @@ void cmd_setp(char* s, QueueDescriptor* rdyQueue, QueueDescriptor* blkQueue) {
   }	
 			      */
 };
-void cmd_suspend(char* s, QueueDescriptor* rdyQueue, QueueDescriptor* blkQueue) {/*
-  ProcessControlBlock* target;
+
+void cmd_suspend(char* s) {
+  ProcessControlBlock* target; /*
   target = find_pcb(name);
   if (target) {
     target->isSuspended = 1;
   }
 										 */
 };
-void cmd_resume(char* s, QueueDescriptor* rdyQueue, QueueDescriptor* blkQueue) {/*
-  ProcessControlBlock* target;
+
+void cmd_resume(char* s) {
+  ProcessControlBlock* target; /*
   target = find_pcb(name);
   if (target) {
     target->isSuspended = 0;
     }*/	
 };
-void cmd_showpcb(char* s, QueueDescriptor* rdyQueue, QueueDescriptor* blkQueue) {
+
+void cmd_showpcb(char* s) {
   ProcessRecord* tmp;
   s[strlen(s)-1] = '\0';
   tmp  = find_pcb(s);
@@ -160,9 +173,27 @@ void cmd_showpcb(char* s, QueueDescriptor* rdyQueue, QueueDescriptor* blkQueue) 
   };
 };
 
-void cmd_showall(char* s, QueueDescriptor* rdyQueue, QueueDescriptor* blkQueue) {
+void cmd_showall(char* s) {
 };
-void cmd_showrdy(char* s, QueueDescriptor* queue) {
+
+void cmd_showrdy(char* s) {
+  ProcessRecord* tmp;
+  tmp = READYQ->head;
+  if (tmp == NULL) {
+    printf("Ready queue empty!\n");
+    goto end;
+  };
+  do {
+    printf("PCB Name: %s\n"
+	   "   Class: %c\n"
+	   "Priority: %d\n", 
+	   tmp->pcb->name,
+	   (tmp->pcb->class == 1) ? 'S' : 'A',
+	   tmp->pcb->priority);
+    tmp = tmp->next;
+ } while (tmp != READYQ->head);
+  end:
 };
-void cmd_showblk(char* s, QueueDescriptor* queue) {
+
+void cmd_showblk(char* s) {
 };

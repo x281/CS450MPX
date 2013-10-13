@@ -233,22 +233,37 @@ return tempPtr;
 }
 */
 
-int remove_pcb(char* name) {
+int remove_pcb(QueueDescriptor* queue, char* name) {
   int freed;
   ProcessRecord *target, *temp;
   target = find_pcb(name);
-  
-  if(target != NULL) {
-    temp = target->prev;
-    temp->next = target->next;
-    
-    temp = target->next;
-    temp->prev = target->next;
-    sys_free_mem(target);
-    freed = 1;
-  } else {
-    printf("Failed to remove process\n");
-    freed = 0;
-  }
-  return freed;
+
+  if (target == NULL) return -1;
+
+  if ((target == queue->head) &&
+      (target == queue->tail)) {
+    queue->head = NULL;
+    queue->tail = NULL;
+    target->next = NULL;
+    target->prev = NULL;
+    return 0;
+  };
+
+  temp = queue->head;
+
+  do {
+    if (temp == target) break;
+    temp = temp->next;
+  } while (temp != queue->head);
+
+  if (temp != target) return -2;
+
+  temp = target->prev;
+  temp->next = target->next;
+  if (target == queue->tail) queue->tail = temp;
+  temp = target->next;
+  temp->prev = target->prev;
+  if (target == queue->head) queue->head = temp;
+
+  return 0;
 }

@@ -54,17 +54,17 @@ void  cmd_help();
 int   cmd_set_date(date_rec*, char*);
 void  cmd_disp_date(date_rec*);
 void  cmd_clear();
-void  cmd_block(char*, QueueDescriptor*, QueueDescriptor*);
-void  cmd_unblock(char*, QueueDescriptor*, QueueDescriptor*);
-void  cmd_mkprocess(char*, QueueDescriptor*);
-void  cmd_rmprocess(char*, QueueDescriptor*, QueueDescriptor*);
-void  cmd_suspend(char*, QueueDescriptor*, QueueDescriptor*);
-void  cmd_resume(char*, QueueDescriptor*, QueueDescriptor*);
-void  cmd_setp(char*, QueueDescriptor*, QueueDescriptor*);
-void  cmd_showpcb(char*, QueueDescriptor*, QueueDescriptor*);
-void  cmd_showall(char*, QueueDescriptor*, QueueDescriptor*);
-void  cmd_showrdy(char*, QueueDescriptor*);
-void  cmd_showblk(char*, QueueDescriptor*);
+void  cmd_block(char*);
+void  cmd_unblock(char*);
+void  cmd_mkproc(char*);
+void  cmd_rmproc(char*);
+void  cmd_suspend(char*);
+void  cmd_resume(char*);
+void  cmd_setp(char*);
+void  cmd_showpcb(char*);
+void  cmd_showall(char*);
+void  cmd_showrdy(char*);
+void  cmd_showblk(char*);
 
 /* prng.c */
 long  rnd();
@@ -74,12 +74,12 @@ void  rand_init();
 
 /* pcb.c */
 ProcessControlBlock* allocate_pcb();
-int  free_pcb(ProcessControlBlock*);
-void  prioritize(ProcessControlBlock*, int);
-int  setup_pcb(ProcessControlBlock*, char*, int);
+                int  free_pcb(ProcessControlBlock*);
+               void  prioritize(ProcessControlBlock*, int);
+                int  setup_pcb(ProcessControlBlock*, char*, int);
 ProcessControlBlock* find_pcb(char*);
-int  insert_pcb(ProcessControlBlock*, QueueDescriptor*, int);
-int  remove_pcb(ProcessControlBlock*, QueueDescriptor*);
+                int  insert_pcb(ProcessControlBlock*, QueueDescriptor*, int);
+                int  remove_pcb(ProcessControlBlock*, QueueDescriptor*);
 
 void cmd_test();
 
@@ -214,8 +214,7 @@ int mpx_command_loop() {
       case 0: {
 	switch(cmd[0]) {
    // BLOCK PROCESS:
-	case 'b': cmd_block(&entry[j+1+spaceCount],
-			    &readyQueue, &blockedQueue);
+	case 'b': cmd_block(&entry[j+1+spaceCount]);			   
 	  break;
    // CLEAR:
 	case 'c': cmd_clear();
@@ -255,8 +254,7 @@ int mpx_command_loop() {
 	};
 	  break;
    // UNBLOCK PROCESS:
-	case 'u': cmd_unblock(&entry[j+1+spaceCount],
-			      &readyQueue, &blockedQueue);
+	case 'u': cmd_unblock(&entry[j+1+spaceCount]);
 	  break;
    // VERSION:
 	case 'v': cmd_version();
@@ -270,15 +268,13 @@ int mpx_command_loop() {
 	case 'd': cmd_mpxdir(&entry[j+1+spaceCount]);
 	  break;
    // MKPROC (MAKE PROCESS):
-	case 'm': cmd_mkproc(&entry[j+1+spaceCount], &readyQueue);
+	case 'm': cmd_mkproc(&entry[j+1+spaceCount]);
 	  break;
    // RMPROC (REMOVE PROCESS):
-	case 'r': cmd_rmproc(&entry[j+1+spaceCount], 
-			     &readyQueue, &blockedQueue);
+	case 'r': cmd_rmproc(&entry[j+1+spaceCount]);
 	  break;
    // SUSPEND PROCESS:
-	case 's': cmd_suspend(&entry[j+1+spaceCount],
-			      &readyQueue, &blockedQueue);
+	case 's': cmd_suspend(&entry[j+1+spaceCount]);
 	  break;
 	};
 	break;
@@ -286,12 +282,10 @@ int mpx_command_loop() {
       case 2: {
 	switch(cmd[0]) {
    // RESUME PROCESS:
-	case 'r': cmd_resume(&entry[j+1+spaceCount],
-			     &readyQueue, &blockedQueue);
+	case 'r': cmd_resume(&entry[j+1+spaceCount]);
 	  break;
    // SET PRIORITY:
-	case 's': cmd_setp(&entry[j+1+spaceCount],
-			     &readyQueue, &blockedQueue);
+	case 's': cmd_setp(&entry[j+1+spaceCount]);
 	  break;
 	};
 	break;
@@ -299,8 +293,7 @@ int mpx_command_loop() {
       case 3: {
 	switch(cmd[0]) {
    // SHOW PCB:
-	case 's': cmd_showpcb(&entry[j+1+spaceCount],
-			     &readyQueue, &blockedQueue);
+	case 's': cmd_showpcb(&entry[j+1+spaceCount]);
 	  break;
 	};
 	break;
@@ -308,8 +301,7 @@ int mpx_command_loop() {
       case 4: {
 	switch(cmd[0]) {
    // SHOW ALL:
-	case 's': cmd_showall(&entry[j+1+spaceCount],
-			     &readyQueue, &blockedQueue);
+	case 's': cmd_showall(&entry[j+1+spaceCount]);
 	  break;
 	};
 	break;
@@ -317,8 +309,7 @@ int mpx_command_loop() {
       case 5: {
 	switch(cmd[0]) {
    // SHOW READY:
-	case 's': cmd_showrdy(&entry[j+1+spaceCount],
-			     &readyQueue);
+	case 's': cmd_showrdy(&entry[j+1+spaceCount]);
 	  break;
 	};
 	break;
@@ -326,8 +317,7 @@ int mpx_command_loop() {
       case 6: {
 	switch(cmd[0]) {
    // SHOW BLOCKED:
-	case 's': cmd_showblk(&entry[j+1+spaceCount],
-			     &blockedQueue);
+	case 's': cmd_showblk(&entry[j+1+spaceCount]);
 	  break;
 	};
 	break;
