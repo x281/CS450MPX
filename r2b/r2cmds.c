@@ -113,36 +113,73 @@ void cmd_rmproc(char* s) {
 };
 
 void cmd_block(char* s) {
-  ProcessControlBlock* target; /*
-  target = find_pcb(name);
+  ProcessRecord* target; 
+  s[strlen(s)-1] = '\0';
+  target = find_pcb(s);
   if (target) {
-    target->state = BLOCK;
-    insert_pcb(target, 0);
-    remove_pcb(target);
-    }	*/
+    target->pcb->state = BLOCKED;
+    if (remove_pcb(READYQ, s) == 0) {
+      insert_pcb(target->pcb, BLOCKQ, 0);
+      printf("Process %s blocked\n", s);
+    } else {
+      printf("Error dequeueing process.\n");
+    };
+  } else {
+    printf("Process %s not found!\n", s);
+  };
 };
 
 void cmd_unblock(char* s) {
-  ProcessControlBlock* target; /*
-  target = find_pcb(name);
+  ProcessRecord* target;
+  s[strlen(s)-1] = '\0';
+  target = find_pcb(s);
   if (target) {
-    target->state = READY;
-    insert_pcb(target, 1);
-    remove_pcb(target);
-    }*/
+    target->pcb->state = READY;
+    if (remove_pcb(BLOCKQ, s) == 0) {
+      insert_pcb(target->pcb, READYQ, 1);
+      printf("Process %s unblocked\n", s);
+    } else {
+      printf("Error dequeueing process.\n");
+    };
+  } else {
+    printf("Process %s not found!\n", s);
+  };
 };
 
 void cmd_setp(char* s) {
-  ProcessControlBlock* target;/*
-  target = find_pcb(name);
+  ProcessRecord* target;
+  char pBuffer[5];
+  int i = 0;
+  int j;
+  while (!(isspace(s[i]))) {
+    i++;
+  };
+  s[i++] = '\0';
+  target = find_pcb(s);
   if (target) {
-    target->priority = newPriority;
-  }	
-			      */
+    for(j = i, i = 0; i < 5; i++, j++) {
+      pBuffer[i] = s[j];
+      if (isspace(s[j])) break;
+    };
+    if (i < 5) { 
+      pBuffer[i] = '\0';
+      j = atoi(pBuffer);
+      if ((j < -128) || (j > 127)) goto errlen;
+      target = find_pcb(s);
+      if (target) {
+	target->pcb->priority = j;
+      };
+    } else {
+    errlen:
+      printf("Priority out of range (-128:127)\n");
+    };
+  } else {
+    printf("Target PCB not found\n");
+  };
 };
 
 void cmd_suspend(char* s) {
-  ProcessControlBlock* target; /*
+  ProcessRecord* target; /*
   target = find_pcb(name);
   if (target) {
     target->isSuspended = 1;
@@ -166,10 +203,13 @@ void cmd_showpcb(char* s) {
   if (tmp != NULL) {
     printf("PCB Name: %s\n"
 	   "   Class: %c\n"
-	   "Priority: %d\n", 
+	   "Priority: %d\n"
+	   "   State: %c\n", 
 	   tmp->pcb->name,
 	   (tmp->pcb->class == 1) ? 'S' : 'A',
-	   tmp->pcb->priority);
+	   tmp->pcb->priority,
+	   (tmp->pcb->state == 1) ? '\*' :
+	   ((tmp->pcb->state == 2) ? 'R' : 'B'));
   };
 };
 

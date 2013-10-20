@@ -237,11 +237,11 @@ int remove_pcb(QueueDescriptor* queue, char* name) {
   int freed;
   ProcessRecord *target, *temp;
   target = find_pcb(name);
-
   if (target == NULL) return -1;
 
   if ((target == queue->head) &&
       (target == queue->tail)) {
+    printf("Nullifying queue head and tail\n");
     queue->head = NULL;
     queue->tail = NULL;
     target->next = NULL;
