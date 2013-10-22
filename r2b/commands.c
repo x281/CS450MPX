@@ -160,7 +160,20 @@ printf("Commands:\n"
        "help -- lists all of the commands and their functionality\n"
        "quit -- exits the terminal\n"
        "setdate -- sets the new system date, entry syntax is DD-MM-YYYY\n"
-       "version -- displays current MPX version\n");
+       "version -- displays current MPX version\n"
+       "mkproc -- create a process with specified name,\n"
+       "             type (Sys/App), and priority\n"
+       "rmproc -- remove specified process by name\n"
+       "suspend -- set process suspend flag by name\n"
+       "resume -- unset process suspend flag by name\n"
+       "block -- set specified process to the blocked state\n"
+       "unblock -- return specified process to ready queue\n"
+       "showpcb -- give details on a specified PCB by name\n"
+       "showall -- sequentially list all processes\n"
+       "showrdy -- sequentially list unblocked processes\n"
+       "showblk -- sequentially list blocked processes\n"
+       "setp -- set a process (by name) to a specified priority value\n"
+       );
 }
 
 

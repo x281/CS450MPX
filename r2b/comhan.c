@@ -54,6 +54,8 @@ void  cmd_help();
 int   cmd_set_date(date_rec*, char*);
 void  cmd_disp_date(date_rec*);
 void  cmd_clear();
+
+/* r2cmds.c */
 void  cmd_block(char*);
 void  cmd_unblock(char*);
 void  cmd_mkproc(char*);
@@ -62,9 +64,9 @@ void  cmd_suspend(char*);
 void  cmd_resume(char*);
 void  cmd_setp(char*);
 void  cmd_showpcb(char*);
-void  cmd_showall(char*);
-void  cmd_showrdy(char*);
-void  cmd_showblk(char*);
+void  cmd_showall();
+void  cmd_showrdy();
+void  cmd_showblk();
 
 /* prng.c */
 long  rnd();
@@ -73,6 +75,8 @@ float randf();
 void  rand_init();
 
 /* pcb.c */
+               void  init_queues();
+               void  dispose_queues();
 ProcessControlBlock* allocate_pcb();
                 int  free_pcb(ProcessControlBlock*);
                void  prioritize(ProcessControlBlock*, int);
@@ -90,6 +94,8 @@ int main() {
   int ini;
 
   rand_init();
+
+  init_queues();
   
   //Init sys helper
   ini = sys_init(MODULE_R1);
@@ -103,6 +109,8 @@ int main() {
     sys_exit();
   } else printf("SYSTEM ERROR: Unable to initialize library");
 
+
+  dispose_queues();
   printf("[MPX System Shutdown]\n");
 
   return 0;
@@ -301,7 +309,7 @@ int mpx_command_loop() {
       case 4: {
 	switch(cmd[0]) {
    // SHOW ALL:
-	case 's': cmd_showall(&entry[j+1+spaceCount]);
+	case 's': cmd_showall();
 	  break;
 	};
 	break;
@@ -309,7 +317,7 @@ int mpx_command_loop() {
       case 5: {
 	switch(cmd[0]) {
    // SHOW READY:
-	case 's': cmd_showrdy(&entry[j+1+spaceCount]);
+	case 's': cmd_showrdy();
 	  break;
 	};
 	break;
@@ -317,7 +325,7 @@ int mpx_command_loop() {
       case 6: {
 	switch(cmd[0]) {
    // SHOW BLOCKED:
-	case 's': cmd_showblk(&entry[j+1+spaceCount]);
+	case 's': cmd_showblk();
 	  break;
 	};
 	break;

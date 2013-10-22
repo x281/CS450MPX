@@ -122,10 +122,10 @@ void cmd_block(char* s) {
       insert_pcb(target->pcb, BLOCKQ, 0);
       printf("Process %s blocked\n", s);
     } else {
-      printf("Error dequeueing process.\n");
+      printf("Error dequeueing process\n");
     };
   } else {
-    printf("Process %s not found!\n", s);
+    printf("Process %s not found\n", s);
   };
 };
 
@@ -139,10 +139,10 @@ void cmd_unblock(char* s) {
       insert_pcb(target->pcb, READYQ, 1);
       printf("Process %s unblocked\n", s);
     } else {
-      printf("Error dequeueing process.\n");
+      printf("Error dequeueing process\n");
     };
   } else {
-    printf("Process %s not found!\n", s);
+    printf("Process %s not found\n", s);
   };
 };
 
@@ -179,20 +179,27 @@ void cmd_setp(char* s) {
 };
 
 void cmd_suspend(char* s) {
-  ProcessRecord* target; /*
-  target = find_pcb(name);
+  ProcessRecord* target; 
+  s[strlen(s)-1] = '\0';
+  target = find_pcb(s);
   if (target) {
-    target->isSuspended = 1;
-  }
-										 */
+    target->pcb->isSuspended = 1;
+    printf("Process %s is now suspended\n", s);
+  } else {
+    printf("Could not locate process: %s\n", s);
+  };
 };
 
 void cmd_resume(char* s) {
-  ProcessControlBlock* target; /*
-  target = find_pcb(name);
+  ProcessRecord* target;
+  s[strlen(s)-1] = '\0';
+  target = find_pcb(s);
   if (target) {
-    target->isSuspended = 0;
-    }*/	
+    target->pcb->isSuspended = 0;
+    printf("Process %s resumed from suspension\n", s);
+  } else {
+    printf("Could not locate process: %s\n", s);
+  };
 };
 
 void cmd_showpcb(char* s) {
@@ -204,19 +211,18 @@ void cmd_showpcb(char* s) {
     printf("PCB Name: %s\n"
 	   "   Class: %c\n"
 	   "Priority: %d\n"
-	   "   State: %c\n", 
+	   "   State: %c\n"
+	   "   +Susp: %c\n", 
 	   tmp->pcb->name,
 	   (tmp->pcb->class == 1) ? 'S' : 'A',
 	   tmp->pcb->priority,
 	   (tmp->pcb->state == 1) ? '\*' :
-	   ((tmp->pcb->state == 2) ? 'R' : 'B'));
+	   ((tmp->pcb->state == 2) ? 'R' : 'B'),
+	   (tmp->pcb->isSuspended) ? 'Y':'N' );
   };
 };
 
-void cmd_showall(char* s) {
-};
-
-void cmd_showrdy(char* s) {
+void cmd_showrdy() {
   ProcessRecord* tmp;
   tmp = READYQ->head;
   if (tmp == NULL) {
@@ -226,14 +232,46 @@ void cmd_showrdy(char* s) {
   do {
     printf("PCB Name: %s\n"
 	   "   Class: %c\n"
-	   "Priority: %d\n", 
+	   "Priority: %d\n"
+	   "   State: %c\n"
+	   "   +Susp: %c\n", 
 	   tmp->pcb->name,
 	   (tmp->pcb->class == 1) ? 'S' : 'A',
-	   tmp->pcb->priority);
+	   tmp->pcb->priority,
+	   (tmp->pcb->state == 1) ? '\*' :
+	   ((tmp->pcb->state == 2) ? 'R' : 'B'),
+	   (tmp->pcb->isSuspended) ? 'Y':'N' );
     tmp = tmp->next;
- } while (tmp != READYQ->head);
+  } while (tmp != READYQ->head);
   end:
 };
 
-void cmd_showblk(char* s) {
-};
+void cmd_showblk() {
+  ProcessRecord* tmp;
+  tmp = BLOCKQ->head;
+  if (tmp == NULL) {
+    printf("Blocked queue empty!\n");
+    goto end;
+  };
+  do {
+    printf("PCB Name: %s\n"
+	   "   Class: %c\n"
+	   "Priority: %d\n"
+	   "   State: %c\n"
+	   "   +Susp: %c\n", 
+	   tmp->pcb->name,
+	   (tmp->pcb->class == 1) ? 'S' : 'A',
+	   tmp->pcb->priority,
+	   (tmp->pcb->state == 1) ? '\*' :
+	   ((tmp->pcb->state == 2) ? 'R' : 'B'),
+	   (tmp->pcb->isSuspended) ? 'Y':'N' );
+    tmp = tmp->next;
+  } while (tmp != BLOCKQ->head);
+  end:
+  };
+
+
+void cmd_showall() {
+  cmd_showrdy();
+  cmd_showblk();
+  };

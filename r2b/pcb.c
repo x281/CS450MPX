@@ -5,6 +5,41 @@
 QueueDescriptor *READYQ;
 QueueDescriptor *BLOCKQ;
 
+void init_queues() {
+  READYQ = sys_alloc_mem(sizeof(QueueDescriptor));
+  BLOCKQ = sys_alloc_mem(sizeof(QueueDescriptor));
+  READYQ->head = NULL;
+  BLOCKQ->head = NULL;
+  READYQ->tail = NULL; 
+  BLOCKQ->tail = NULL; 
+};
+
+void dispose_queues() {
+  ProcessRecord* tmp;
+  tmp = READYQ->head;
+  if (tmp) {
+    do {
+      remove_pcb(READYQ, tmp->pcb->name);
+      if (free_pcb(tmp->pcb) != 0) {
+	printf("Error dequeueing PCB\n");
+      };
+      sys_free_mem(tmp);
+      tmp = READYQ->head;
+    } while (tmp);
+  };
+  tmp = BLOCKQ->head;
+  if (tmp) {
+    do {
+      remove_pcb(BLOCKQ, tmp->pcb->name);
+      if (free_pcb(tmp->pcb) != 0) {
+	printf("Error dequeueing PCB\n");
+      };
+      sys_free_mem(tmp);
+      tmp = BLOCKQ->head;
+    } while (tmp);
+  };
+};
+
 ProcessControlBlock* allocate_pcb() {
   ProcessControlBlock* result;
   int i;
@@ -158,80 +193,6 @@ ProcessRecord* find_pcb(char* name) {
   return NULL;
 };
 
-
-/*
-void insert_pcb(ProcessControlBlock *newpcb, int mode) {
-ProcessRecord *newPtr, *previousPtr, *currentPtr;*//*
-  newPtr = sys_alloc_mem(sizeof(ProcessRecord));
-  
-  if (newPtr != NULL) {
-    newPtr = newpcb;
-    newPtr->next = NULL;
-	if(mode) {
-	currentPtr = READYQ;
-		while (currentPtr != NULL && currentPtr->pcb->priority > newpcb->priority) {
-			previousPtr = currentPtr;
-			currentPtr = currentPtr->next;
-        }
-		if (previousPtr == NULL) {
-			newPtr->next = READYQ;
-			READYQ = newPtr;
-			RDESC->head = READYQ;
-        } else {
-			previousPtr->next = newPtr;
-			newPtr->next = currentPtr;
-			newPtr->prev = previousPtr;
-			currentPtr->prev = newPtr;
-			if(currentPtr == NULL){RDESC->tail = newPtr;}
-        };
-    } else {
-      currentPtr = BLOCKQ;
-	    while (currentPtr != NULL) {
-			previousPtr = currentPtr;
-			currentPtr = currentPtr->next;
-        }
-        if (previousPtr == NULL) {
-			newPtr->next = BLOCKQ;
-			BLOCKQ = newPtr;
-			BDESC->head = BLOCKQ;
-        } else {
-			previousPtr->next = newPtr;
-			newPtr->next = currentPtr;
-			newPtr->prev = previousPtr;
-			if(currentPtr == NULL){BDESC->tail = newPtr;}
-        };
-	};
-  } else {
-      printf("Process not inserted. No memory available.\n");
-      };*/
-//}
-/* 
-ProcessRecord* find_pcb(char* name) {
-ProcessRecord *tempPtr;
-int found = 0;
-int searchedblock = 0;
-tempPtr = RDESC->head;
- 
-while(tempPtr != NULL) {
-	if(tempPtr->pcb->state) {
-		if(strcmp(tempPtr->pcb->name,name)) {	
-			found = 1;
-			break;
-		} else {
-			tempPtr = tempPtr->next;
-		}
-	} else {
-		tempPtr = tempPtr->next;
-	}
-	if(tempPtr == NULL && !searchedblock) {
-	tempPtr = BDESC->head;
-	searchedblock = 1;
-	}
-}
-if(!found){tempPtr = NULL;}
-return tempPtr;
-}
-*/
 
 int remove_pcb(QueueDescriptor* queue, char* name) {
   int freed;
