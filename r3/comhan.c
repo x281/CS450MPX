@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <dos.h>
 #include "mpx_supt.h"
 #include "mpx.h"
 
@@ -23,6 +24,7 @@
   cmdArray['c'-'a'][0] = "clear";\
   cmdArray['d'-'a'][0] = "date";\
   cmdArray['d'-'a'][1] = "dir";\
+  cmdArray['d'-'a'][2] = "dispatch";\
   cmdArray['h'-'a'][0] = "help";\
   cmdArray['m'-'a'][0] = "mpxdir";\
   cmdArray['m'-'a'][1] = "mkproc";\
@@ -38,6 +40,7 @@
   cmdArray['s'-'a'][5] = "showrdy";\
   cmdArray['s'-'a'][6] = "showblk";\
   cmdArray['t'-'a'][0] = "test";\
+  cmdArray['t'-'a'][1] = "testproc";\
   cmdArray['u'-'a'][0] = "unblock";\
   cmdArray['v'-'a'][0] = "version";
 
@@ -68,6 +71,14 @@ void  cmd_showall();
 void  cmd_showrdy();
 void  cmd_showblk();
 
+/* r3.c */
+void  interrupt mpx_dispatch();
+void  interrupt sys_call();
+// load_proc();
+void  cmd_dispatch();
+void  cmd_testproc();
+
+
 /* prng.c */
 long  rnd();
 int   randi(int);
@@ -75,15 +86,15 @@ float randf();
 void  rand_init();
 
 /* pcb.c */
-               void  init_queues();
-               void  dispose_queues();
+void    init_queues();
+void dispose_queues();
+int     free_pcb(ProcessControlBlock*);
+void  prioritize(ProcessControlBlock*, int);
+int    setup_pcb(ProcessControlBlock*, char*, int);
+int   insert_pcb(ProcessControlBlock*, QueueDescriptor*, int);
+int   remove_pcb(ProcessControlBlock*, QueueDescriptor*);
 ProcessControlBlock* allocate_pcb();
-                int  free_pcb(ProcessControlBlock*);
-               void  prioritize(ProcessControlBlock*, int);
-                int  setup_pcb(ProcessControlBlock*, char*, int);
 ProcessControlBlock* find_pcb(char*);
-                int  insert_pcb(ProcessControlBlock*, QueueDescriptor*, int);
-                int  remove_pcb(ProcessControlBlock*, QueueDescriptor*);
 
 void cmd_test();
 
@@ -98,7 +109,7 @@ int main() {
   init_queues();
   
   //Init sys helper
-  ini = sys_init(MODULE_R1);
+  ini = sys_init(MODULE_R3);
 
   //Start cmd loop
   if (ini == 0) {
@@ -284,11 +295,17 @@ int mpx_command_loop() {
    // SUSPEND PROCESS:
 	case 's': cmd_suspend(&entry[j+1+spaceCount]);
 	  break;
+   // TESTPROC (R3 TEST SUITE):
+	case 't': cmd_testproc();
+	  break;
 	};
 	break;
       };
       case 2: {
 	switch(cmd[0]) {
+   // DISPATCH (R3 DISPATCHER CALL):
+	case 'd': cmd_dispatch(&entry[j+1+spaceCount]);
+	  break;
    // RESUME PROCESS:
 	case 'r': cmd_resume(&entry[j+1+spaceCount]);
 	  break;
