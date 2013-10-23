@@ -107,9 +107,11 @@ int main() {
   rand_init();
 
   init_queues();
-  
+
   //Init sys helper
   ini = sys_init(MODULE_R3);
+
+  ini = sys_set_vec(sys_call);
 
   //Start cmd loop
   if (ini == 0) {
@@ -118,8 +120,13 @@ int main() {
 
     //Shutdown sys helper
     sys_exit();
-  } else printf("SYSTEM ERROR: Unable to initialize library");
-
+  } else {
+    if (ini == ERR_SUP_INVHAN) {
+      printf("SYSTEM ERROR: Unable to set interrupt vector");
+  } else {
+      printf("SYSTEM ERROR: Unable to initialize library");
+    };
+  };
 
   dispose_queues();
   printf("[MPX System Shutdown]\n");

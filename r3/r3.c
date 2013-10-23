@@ -15,7 +15,8 @@ void cmd_testproc(char* s) {
 
 
 
-
+//load_proc() {
+//};
 
 void interrupt mpx_dispatch() {
 

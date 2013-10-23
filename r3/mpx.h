@@ -67,6 +67,21 @@ typedef struct {
   ProcessRecord *tail;
 } QueueDescriptor;
 
+/* PROCESS CONTEXT */
+typedef struct {
+  unsigned int BP, DI, SI, DS, ES;
+  unsigned int DX, CX, BX, AX;
+  unsigned int IP, CS, FLAGS;
+} context;
+
+/* PROCESS SYSTEM PARAMETERS */
+typedef struct {
+  int  op_code;
+  int  device_id;
+  unsigned char *buf_addr;
+  int *count_addr;
+};
+
 
 /*GLOBAL QUEUES AND QUEUE DESCRIPTORS*/
 extern QueueDescriptor *READYQ;
